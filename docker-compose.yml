@@ -1,0 +1,54 @@
+version: '3.4'
+
+networks:
+  fruits-net:
+    driver: bridge 
+    ipam:
+      driver: default
+      config:
+        - subnet: "142.18.0.0/16"
+          gateway: "142.18.0.1"
+
+
+
+services:
+
+  react-app:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: ui
+    restart: always
+    networks:
+      fruits-net:
+        ipv4_address: 142.18.0.2 
+    ports:
+      - "3000:3000"
+    environment:
+      APPLES_API_URL: "http://142.18.0.3:7212" 
+      ORANGES_API_URL: "http://142.18.0.3:7024"
+ 
+  
+  oranges-api:
+    build:
+      context: ./serverA
+      dockerfile: Dockerfile
+    container_name: oranges
+    restart: always
+    networks:
+      fruits-net:
+        ipv4_address: 142.18.0.3 
+    ports:
+      - "7023:443"
+
+  apples-api:
+    build:
+      context: ./serverB
+      dockerfile: Dockerfile
+    container_name: apples
+    restart: always
+    networks:
+      fruits-net:
+        ipv4_address: 142.18.0.4 
+    ports:
+      - "7211:443"    
