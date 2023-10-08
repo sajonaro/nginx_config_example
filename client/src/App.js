@@ -3,9 +3,11 @@ import {GlobalVarsContext} from './GlobalVarsContextProvider'
 import React, { useEffect, useState, useContext  } from 'react';
 
 function App() {
-  const [ apples, setApples] = useState([]);
+  const [ apples,  setApples ] = useState([]);
   const [ oranges, setOranges] = useState([]);
-  const { ORANGES_API_URL , APPLES_API_URL} = useContext(GlobalVarsContext)
+  const [ weather, setWeather] = useState([]);
+
+  const { ORANGES_API_URL , APPLES_API_URL, FORECAST_URL} = useContext(GlobalVarsContext)
 
   useEffect(() => {
  
@@ -38,6 +40,23 @@ function App() {
     }
     getOranges();
 
+
+    async function getWheather() {
+        const response = await fetch(`${FORECAST_URL}`, {
+            mode: 'cors',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+            }
+        });
+
+        setWeather(await response.json());
+    }
+    getWheather();
+
+
+
   }, [ORANGES_API_URL, APPLES_API_URL]);
 
   return (
@@ -54,6 +73,11 @@ function App() {
             {oranges.map((item) => (
                <li >{item.kind}</li>))}
         </ul>
+
+        < h3> Wheather </h3>
+        <div>{weather}</div>
+        
+
     </div>
   );
 }

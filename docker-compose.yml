@@ -2,13 +2,31 @@ version: '3.4'
 
 networks:
   fruits-net:
-    driver: bridge 
-    ipam:
-      driver: default
-      config:
-        - subnet: "142.18.0.0/16"
-          gateway: "142.18.0.1"
+   driver: bridge
+   ipam:
+    config:
+      - subnet: "142.18.0.0/16"
+        gateway: "142.18.0.1"
 
+
+volumes:
+  mock_data:
+    driver: local
+  # will have to create usersecrets via ./certtificates/create_certs.sh script on target host (under root)
+  # because there will be no 'al' user   
+  secrets:
+   driver: local
+   driver_opts:
+    type: 'none'
+    o: 'bind'
+    device: '/home/al/.microsoft/usersecrets'  
+  # path to .pfx files generated with ./certtificates/create_certs.sh  
+  certificates:
+   driver: local
+   driver_opts:
+    type: 'none'
+    o: 'bind'
+    device: './serviceC/certificates'  
 
 
 services:
@@ -24,14 +42,11 @@ services:
         ipv4_address: 142.18.0.2 
     ports:
       - "3000:3000"
-    environment:
-      APPLES_API_URL: "http://142.18.0.3:7212" 
-      ORANGES_API_URL: "http://142.18.0.3:7024"
  
   
   oranges-api:
     build:
-      context: ./serverA
+      context: ./serviceA
       dockerfile: Dockerfile
     container_name: oranges
     restart: always
@@ -39,11 +54,11 @@ services:
       fruits-net:
         ipv4_address: 142.18.0.3 
     ports:
-      - "7023:443"
+      - "7024:7024"
 
   apples-api:
     build:
-      context: ./serverB
+      context: ./serviceB
       dockerfile: Dockerfile
     container_name: apples
     restart: always
@@ -51,4 +66,23 @@ services:
       fruits-net:
         ipv4_address: 142.18.0.4 
     ports:
-      - "7211:443"    
+      - "7212:7212"    
+
+
+  weather:
+    build: 
+      context: ./serviceC
+      dockerfile: Dockerfile
+    container_name: weather-api
+    networks:
+      fruits-net:
+        ipv4_address: 142.18.0.5
+    ports:
+      - "7263:443"
+    environment:
+      ASPNETCORE_URLS: "https://+;http://+"
+      ASPNETCORE__HTTPS_PORT: 7263
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+       - secrets:/root/.microsoft/usersecrets
+       - certificates:/root/.aspnet/https     
