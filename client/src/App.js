@@ -57,7 +57,7 @@ function App() {
 
 
 
-  }, [ORANGES_API_URL, APPLES_API_URL]);
+  }, [ORANGES_API_URL, APPLES_API_URL,FORECAST_URL]);
 
   return (
     <div className="App">
